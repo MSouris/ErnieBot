@@ -27,6 +27,7 @@ def cleantextList(listasstring):
     output = listasstring.replace("'",'').replace("]",'').replace("[",'').replace('"','')
     return output
 
+#def checkSimpleAudioFiles:
 
 def getSimpleAudioDict():
     SIMPLEAUDIOCONFIGFILE = open('sounds\SimpleAudio\SimpleAudioConfig.txt','r')
@@ -126,5 +127,3 @@ def getRngAudioList():
             RngAudioList.append(keyword)
 
     return RngAudioList
-
-#def checkSimpleAudioFiles:

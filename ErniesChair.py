@@ -1,4 +1,3 @@
-# These are the dependecies. The bot depends on these to function, hence the name. Please do not change these unless your adding to them, because they can break the bot.
 import discord
 import asyncio
 from discord.ext.commands import Bot
@@ -51,21 +50,21 @@ async def on_message(msg):
         await asyncio.sleep(3)
 
     #removethis!!
-    if CmdWord.startswith('thisisatest') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
-        await client.send_message(msg.channel,"ernie sound!")
-        try:
-            voice = await client.join_voice_channel(msg.author.voice_channel)
-            player = voice.create_ffmpeg_player('sounds/are you guys oh nevermind.wav')
-            player.start()
-        except:
-            pass
-        while True:
-            try:
-                if player.is_done():
-                    await voice.disconnect()
-                    break
-            except:
-                break
+    #if CmdWord.startswith('thisisatest') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+    #    await client.send_message(msg.channel,"ernie sound!")
+    #    try:
+    #        voice = await client.join_voice_channel(msg.author.voice_channel)
+    #        player = voice.create_ffmpeg_player('sounds/are you guys oh nevermind.wav')
+    #        player.start()
+    #    except:
+    #        pass
+    #    while True:
+    #        try:
+    #            if player.is_done():
+    #                await voice.disconnect()
+    #                break
+    #        except:
+    #            break
 
     if any(CmdWord in s for s in SimpleAudioList) and FunctionFile.checkVoiceChannelFromMsg(msg, client):
         print(SimpleAudioDict['logword'][CmdWord])
@@ -113,6 +112,24 @@ async def on_message(msg):
                     break
             except:
                 break
+
+    if CmdWord.startswith('killme') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+        print("Kill Me - " + msg.author.name)
+        await client.send_message(msg.channel,"R I P")
+        try:
+            voice = await client.join_voice_channel(msg.author.voice_channel)
+            player = voice.create_ffmpeg_player('sounds/killme.mp3')
+            player.start()
+        except:
+            pass
+        while True:
+            try:
+                if player.is_done():
+                    await client.move_member(msg.author, msg.server.afk_channel)
+                    await voice.disconnect()
+                    break
+            except:
+               break
 
 client.run(DiscordKey.getDiscordKey())
 
