@@ -99,3 +99,15 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+
+#PyCharm
+.idea/
+
+#Audio
+*.ogg
+*.mp3
+*.wav
+
+#Discord
+DiscordKey.py
