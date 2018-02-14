@@ -94,7 +94,7 @@ async def on_message(msg):
         print(RngAudioDict['logword'][CmdWord] + "\tRNGValue " + str(RandomValue) + "\tMove Channel = " + str(MoveChannel))
 
         try:
-            await client.send_message(msg.channel, ChannelMessage)
+            await client.send_message(msg.channel, str(RandomValue + 1) + " - " + ChannelMessage)
         except:
             pass
         try:
@@ -130,6 +130,43 @@ async def on_message(msg):
                     break
             except:
                break
+
+    if CmdWord.startswith('!rngesus') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+        RandomNum = random.randint(0,9)
+        print("RNGesus - " + str(RandomNum + 1) + " - " + msg.author.name)
+        if RandomNum == 0:
+            moveduser = random.choice(msg.author.voice_channel.voice_members)
+            await client.send_message(msg.channel, "Headshot!!!! See ya " + moveduser.name)
+            try:
+                voice = await client.join_voice_channel(msg.author.voice_channel)
+                player = voice.create_ffmpeg_player('sounds/CritHitRNG.mp3')
+                player.start()
+            except:
+                pass
+            while True:
+                try:
+                    if player.is_done():
+                        await client.move_member(moveduser, msg.server.afk_channel)
+                        await voice.disconnect()
+                        break
+                except:
+                   break
+        else:
+            await client.send_message(msg.channel, "Bad aim. See ya " + msg.author.name)
+            try:
+                voice = await client.join_voice_channel(msg.author.voice_channel)
+                player = voice.create_ffmpeg_player('sounds/Sniper_Fire_Reload.mp3')
+                player.start()
+            except:
+                pass
+            while True:
+                try:
+                    if player.is_done():
+                        await client.move_member(msg.author, msg.server.afk_channel)
+                        await voice.disconnect()
+                        break
+                except:
+                   break
 
 client.run(DiscordKey.getDiscordKey())
 
