@@ -45,6 +45,8 @@ async def on_ready():
 @client.event
 async def on_message(msg):
     CmdWord = FunctionFile.ConvertMsg(msg.content)
+    AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
+
     if CmdWord.startswith('ping') and msg.author.id != client.user.id:
         await client.send_message(msg.channel,":ping_pong: Pong!")
         await asyncio.sleep(3)
@@ -86,7 +88,7 @@ async def on_message(msg):
             except:
                 break
 
-    if any(CmdWord in s for s in RngAudioList) and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+    if any(CmdWord in s for s in RngAudioList) and FunctionFile.checkVoiceChannelFromMsg(msg, client) and (AFKChannel is not None):
         RandomValue = random.randint(0,9)
         ChannelMessage = RngAudioDict['chatresponse'][CmdWord][RandomValue]
         AudioFile = RngAudioDict['audiofile'][CmdWord][RandomValue].lstrip()
@@ -107,13 +109,13 @@ async def on_message(msg):
             try:
                 if player.is_done():
                     if MoveChannel == 'true':
-                        await client.move_member(msg.author, msg.server.afk_channel)
+                        await client.move_member(msg.author, AFKChannel)
                     await voice.disconnect()
                     break
             except:
                 break
 
-    if CmdWord.startswith('killme') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+    if CmdWord.startswith('killme') and FunctionFile.checkVoiceChannelFromMsg(msg, client) and (AFKChannel is not None):
         print("Kill Me - " + msg.author.name)
         await client.send_message(msg.channel,"R I P")
         try:
@@ -125,13 +127,13 @@ async def on_message(msg):
         while True:
             try:
                 if player.is_done():
-                    await client.move_member(msg.author, msg.server.afk_channel)
+                    await client.move_member(msg.author, AFKChannel)
                     await voice.disconnect()
                     break
             except:
                break
 
-    if CmdWord.startswith('!rngesus') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
+    if CmdWord.startswith('!rngesus') and FunctionFile.checkVoiceChannelFromMsg(msg, client) and (AFKChannel is not None):
         RandomNum = random.randint(0,9)
         print("RNGesus - " + str(RandomNum + 1) + " - " + msg.author.name)
         if RandomNum == 0:
@@ -146,7 +148,7 @@ async def on_message(msg):
             while True:
                 try:
                     if player.is_done():
-                        await client.move_member(moveduser, msg.server.afk_channel)
+                        await client.move_member(moveduser, AFKChannel)
                         await voice.disconnect()
                         break
                 except:
@@ -162,7 +164,7 @@ async def on_message(msg):
             while True:
                 try:
                     if player.is_done():
-                        await client.move_member(msg.author, msg.server.afk_channel)
+                        await client.move_member(msg.author, AFKChannel)
                         await voice.disconnect()
                         break
                 except:
