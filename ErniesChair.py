@@ -15,6 +15,8 @@ SimpleAudioDict = FunctionFile.getSimpleAudioDict()
 SimpleAudioList = FunctionFile.getSimpleAudioList()
 RngAudioDict = FunctionFile.getrngAudioDict()
 RngAudioList = FunctionFile.getRngAudioList()
+MemRoleDict = FunctionFile.getMembersRolesDict()
+KickRoleList = FunctionFile.getKickRolesList()
 
 #for keys,values in SimpleAudioDict.items():
 #    print(keys)
@@ -45,28 +47,12 @@ async def on_ready():
 @client.event
 async def on_message(msg):
     CmdWord = FunctionFile.ConvertMsg(msg.content)
-    AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
+    if msg.channel.type == discord.ChannelType.text:
+        AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
 
     if CmdWord.startswith('ping') and msg.author.id != client.user.id:
         await client.send_message(msg.channel,":ping_pong: Pong!")
         await asyncio.sleep(3)
-
-    #removethis!!
-    #if CmdWord.startswith('thisisatest') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
-    #    await client.send_message(msg.channel,"ernie sound!")
-    #    try:
-    #        voice = await client.join_voice_channel(msg.author.voice_channel)
-    #        player = voice.create_ffmpeg_player('sounds/are you guys oh nevermind.wav')
-    #        player.start()
-    #    except:
-    #        pass
-    #    while True:
-    #        try:
-    #            if player.is_done():
-    #                await voice.disconnect()
-    #                break
-    #        except:
-    #            break
 
     if any(CmdWord in s for s in SimpleAudioList) and FunctionFile.checkVoiceChannelFromMsg(msg, client):
         print(SimpleAudioDict['logword'][CmdWord])
@@ -170,5 +156,56 @@ async def on_message(msg):
                 except:
                    break
 
-client.run(DiscordKey.getDiscordKey())
+    if CmdWord.startswith('!kick') and msg.author.id != client.user.id:
+        if FunctionFile.getRoleInListBool(msg.author.roles, KickRoleList) == False:
+            await client.send_message(msg.author, "You do not have permissions to kick.")
+            print(msg.author.name + " - does not have permission to kick '" + msg.content + "'.")
+        else:
+            AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
+            mentionList = msg.mentions
+            if len(mentionList) > 0:
+                try:
+                    voice = await client.join_voice_channel(msg.author.voice_channel)
+                    player = voice.create_ffmpeg_player('sounds/hasta-la-vista-baby.mp3')
+                    player.start()
+                except:
+                    pass
+                while True:
+                    try:
+                        if player.is_done():
+                            await voice.disconnect()
+                            for mentionie in mentionList:
+                                await client.send_message(msg.channel, "Goodbye " + mentionie.mention)
+                                await client.send_message(mentionie, "You have been kicked from the server. Click the invite below to get back into the server.")
+                                invite = await client.create_invite(AFKChannel, xkcd=True, max_age=82800, max_uses=1)
+                                await client.send_message(mentionie, invite)
+                                await client.kick(mentionie)
+                            break
+                    except:
+                        break
+            else:
+                await client.send_message(msg.author, "Not users mentioned in this kick")
+                print(msg.author.name + " - kicked incorrectly '" + msg.content + "'.")
 
+    if CmdWord.startswith('ping') and msg.author.id != client.user.id:
+        AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
+        await client.send_message(msg.channel,":ping_pong: Pong!")
+        invite = await client.create_invite(AFKChannel, xkcd=True, max_age=82800, max_uses = 1)
+        await client.send_message(msg.author, invite)
+
+
+@client.event
+async def on_member_join(member):
+    print("A member joined - " + member.name)
+    try:
+        RoleNameList = MemRoleDict[member.name]
+        for MemRoleName in RoleNameList:
+            MemRoleObj = discord.utils.get(member.server.roles, name=MemRoleName)
+            await client.add_roles(member, MemRoleObj)
+            await client.send_message(member, "I've added you back to the role of " + MemRoleName + ".")
+        print("Added - " + member.name + " - to roles - " + str(RoleNameList))
+    except KeyError:
+        print(member.name + "\t not in Member Role Dict or Role Config File!!!!!!!!!!!!!")
+
+
+client.run(DiscordKey.getDiscordKey())

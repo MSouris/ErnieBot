@@ -127,3 +127,31 @@ def getRngAudioList():
             RngAudioList.append(keyword)
 
     return RngAudioList
+
+
+def getMembersRolesDict():
+    MEMBERROLESFILE = open('Members and Roles\MembersRoles.txt', 'r')
+    MemberRoleDict = {}
+    for line in MEMBERROLESFILE:
+        line = line.rstrip().split('\t')
+        rolelist = line[1].split(',')
+        MemberRoleDict[line[0]] = rolelist
+    #print(str(MemberRoleDict))
+    return MemberRoleDict
+
+
+def getKickRolesList():
+    KICKROLESFILE = open('Members and Roles\AllowedToKickRoles.txt', 'r')
+    KickRoleList = []
+    for line in KICKROLESFILE:
+        line = line.rstrip()
+        KickRoleList.append(line)
+    #print(str(MemberRoleDict))
+    return KickRoleList
+
+def getRoleInListBool(UserRoles, RoleList):
+    bool = False
+    for role in UserRoles:
+        if role.name in RoleList:
+            bool = True
+    return bool
