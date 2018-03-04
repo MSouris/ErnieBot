@@ -187,12 +187,6 @@ async def on_message(msg):
                 await client.send_message(msg.author, "Not users mentioned in this kick")
                 print(msg.author.name + " - kicked incorrectly '" + msg.content + "'.")
 
-    if CmdWord.startswith('ping') and msg.author.id != client.user.id:
-        AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
-        await client.send_message(msg.channel,":ping_pong: Pong!")
-        invite = await client.create_invite(AFKChannel, xkcd=True, max_age=82800, max_uses = 1)
-        await client.send_message(msg.author, invite)
-
 
 @client.event
 async def on_member_join(member):
