@@ -8,6 +8,7 @@ import sys
 import FunctionFile
 import random
 import DiscordKey
+import VoteClass
 
 
 #######Get Constants ######
@@ -156,7 +157,7 @@ async def on_message(msg):
                 except:
                    break
 
-    if CmdWord.startswith('!kick') and msg.author.id != client.user.id:
+    if CmdWord.startswith('!kick') and FunctionFile.checkVoiceChannelFromMsg(msg, client):
         if FunctionFile.getRoleInListBool(msg.author.roles, KickRoleList) == False:
             await client.send_message(msg.author, "You do not have permissions to kick.")
             print(msg.author.name + " - does not have permission to kick '" + msg.content + "'.")

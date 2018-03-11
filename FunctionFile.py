@@ -155,3 +155,6 @@ def getRoleInListBool(UserRoles, RoleList):
         if role.name in RoleList:
             bool = True
     return bool
+
+def Ciel(a, b):
+    return -(-a // b)
