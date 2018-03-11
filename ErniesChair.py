@@ -5,6 +5,7 @@ from discord.ext import commands
 import platform
 from discord import opus
 import sys
+import os
 import FunctionFile
 import random
 import DiscordKey
@@ -18,6 +19,8 @@ RngAudioDict = FunctionFile.getrngAudioDict()
 RngAudioList = FunctionFile.getRngAudioList()
 MemRoleDict = FunctionFile.getMembersRolesDict()
 KickRoleList = FunctionFile.getKickRolesList()
+KickRoleList = FunctionFile.getKickRolesList()
+VoteKickDict = {}
 
 #for keys,values in SimpleAudioDict.items():
 #    print(keys)
@@ -187,6 +190,85 @@ async def on_message(msg):
             else:
                 await client.send_message(msg.author, "Not users mentioned in this kick")
                 print(msg.author.name + " - kicked incorrectly '" + msg.content + "'.")
+
+    if CmdWord.startswith('!votekick') and msg.author.id != client.user.id:
+
+        mentionList = msg.mentions
+
+        AFKChannel = discord.utils.get(msg.server.channels, name='AFK', type=discord.ChannelType.voice)
+
+        for mentionie, VotedUserStruct in VoteKickDict.copy().items():
+            if VotedUserStruct.has5minpassed():
+                print("Vote time expired for vote against " + VotedUserStruct.VotedUser.name)
+                VoteKickDict.pop(mentionie, None)
+
+        for mentionie, VotedUserStruct in VoteKickDict.copy().items():
+        #    if VotedUserStruct.VotedUser.voice_channel is None:
+        #        print("User " + VotedUserStruct.VotedUser.name + " is no longer in the channel")
+        #        VoteKickDict.pop(VotedUserStruct, None)
+            VotedUserStruct.removeUserWhoNoLongerAreInChannel(mentionie.voice_channel.voice_members)
+            if VotedUserStruct.VotedUserSize == 0:
+                print("Removing vote for " + VotedUserStruct.VotedUser.name + " because there are no more valid votes.")
+                VoteKickDict.pop(mentionie, None)
+
+        if len(mentionList) > 0:
+            mentionie = mentionList[0]
+            if mentionie in VoteKickDict:
+                VoteKickDict[mentionie].addVotingUser(msg.author, len(msg.author.voice_channel.voice_members))
+            else:
+                if msg.author.voice_channel == mentionie.voice_channel:
+                    VoteKickDict[mentionie] = VoteClass.VoteKick_struct(mentionie, msg.author, len(msg.author.voice_channel.voice_members))
+                    await client.send_message(msg.channel, "Vote Kick started against - " + mentionie.name)
+                else:
+                    await client.send_message(msg.author, "You must be in a voice channel with the voted user.")
+
+        else:
+            await client.send_message(msg.author, "Not user mentioned in this vote kick")
+            print(msg.author.name + " - vote kicked incorrectly '" + msg.content + "'.")
+
+        for mentionie, VotedUserStruct in VoteKickDict.copy().items():
+            if VotedUserStruct.hasNeededVoteSizeBeenMet(len(msg.author.voice_channel.voice_members)):
+                print(VotedUserStruct.VotedUser.name + " has been vote kicked!!!")
+                try:
+                    voice = await client.join_voice_channel(msg.author.voice_channel)
+                    player = voice.create_ffmpeg_player('sounds/VoteKick/' + random.choice(os.listdir('sounds/VoteKick')))
+                    player.start()
+                except:
+                    pass
+                while True:
+                    try:
+                        if player.is_done():
+                            await voice.disconnect()
+                            for mentionie in mentionList:
+                                await client.send_message(msg.channel, "The tribe has spoken " + mentionie.mention)
+                                await client.send_message(mentionie, "You have been vote kicked from the server. Click the invite below to get back into the server.")
+                                invite = await client.create_invite(AFKChannel, xkcd=True, max_age=82800, max_uses=1)
+                                await client.send_message(mentionie, invite)
+                                await client.kick(mentionie)
+                                VoteKickDict.pop(mentionie, None)
+                            break
+                    except:
+                        break
+
+    if CmdWord.startswith('!votestatus') and msg.author.id != client.user.id:
+        if len(VoteKickDict) != 0:
+            for mentionie, VotedUserStruct in VoteKickDict.copy().items():
+                VotedUserStruct.removeUserWhoNoLongerAreInChannel(mentionie.voice_channel.voice_members)
+                if VotedUserStruct.VotedUserSize == 0:
+                    print("Removing vote for " + VotedUserStruct.VotedUser.name + " because there are no more valid votes.")
+                    VoteKickDict.pop(mentionie, None)
+                if VotedUserStruct.has5minpassed():
+                    print("Vote time expired for vote against " + VotedUserStruct.VotedUser.name)
+                    VoteKickDict.pop(mentionie, None)
+
+            for mentionie, VotedUserStruct in VoteKickDict.items():
+                print("Vote Kick - " + VotedUserStruct.VotedUser.name + " - " + str(VotedUserStruct.VotedUserSize) + "/" + str(VotedUserStruct.NeededVoted))
+                print("\tvotes by:")
+                for voter in VotedUserStruct.VotingUserList:
+                    print("\t\t" + voter.name)
+                await client.send_message(msg.channel, "Vote Kick - " + VotedUserStruct.VotedUser.name + " - " + str(VotedUserStruct.VotedUserSize) + "/" + str(VotedUserStruct.NeededVoted))
+        if len(VoteKickDict) == 0:
+            await client.send_message(msg.channel, "No active votes")
 
 
 @client.event
